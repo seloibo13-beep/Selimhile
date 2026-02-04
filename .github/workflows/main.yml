@@ -1,0 +1,42 @@
+name: Selim-Hile-Derleyici
+
+# Kodda her değişiklik yaptığında çalışır
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. GitHub'daki kodlarını çek
+      - uses: actions/checkout@v3
+
+      # 2. Java (JDK 8) kurulumu yap (Minecraft 1.8.9 için en iyisidir)
+      - name: Java Kurulumu
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
+      # 3. Gradle'ı (Derleme Aracı) çalıştırılabilir yap
+      - name: Yetki Ver
+        run: chmod +x gradlew
+        continue-on-error: true # Eğer gradlew yoksa hata vermesin
+
+      # 4. Kodu JAR dosyasına dönüştür
+      - name: Jar Olarak Paketle
+        run: |
+          if [ -f gradlew ]; then
+            ./gradlew jar
+          else
+            mkdir -p build/libs
+            javac -d . src/main/java/com/selim/hile/*.java
+            jar cvf build/libs/SelimHile.jar .
+          fi
+
+      # 5. Hazır olan hileyi (Jar) indirilebilir hale getir
+      - name: Hileyi Disari Aktar
+        uses: actions/upload-artifact@v3
+        with:
+          name: Selim-Hile-Dosyasi
+          path: build/libs/*.jar
